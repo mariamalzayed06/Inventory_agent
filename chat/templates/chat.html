@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Inventory Agent</title>
+    <style>
+        body { font-family: sans-serif; max-width: 500px; margin: 60px auto; }
+        h2 { margin-bottom: 20px; }
+        #message-input { width: 70%; padding: 8px; }
+        #send-btn { padding: 8px 16px; }
+        #chat-log { margin-top: 20px; }
+        .user-msg { color: rgb(230, 94, 158); margin: 5px 0; }
+        .agent-msg { color: rgb(95, 78, 223); margin: 5px 0; }
+        #start-over { display: block; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <h2>Inventory Agent</h2>
+    <input type="text" id="message-input" placeholder="Ask about the inventory...">
+    <button id="send-btn">Send</button>
+    <a href="#" id="start-over">Start over</a>
+
+    <div id="chat-log"></div>
+
+    <script>
+        const chatLog = document.getElementById("chat-log");
+        const input = document.getElementById("message-input");
+        const sendBtn = document.getElementById("send-btn");
+        const startOver = document.getElementById("start-over");
+
+        function appendMessage(text, className) {
+            const div = document.createElement("div");
+            div.className = className;
+            div.textContent = text;
+            chatLog.appendChild(div);
+        }
+
+        async function sendMessage() {
+            const message = input.value.trim();
+            if (!message) return;
+
+            appendMessage("You: " + message, "user-msg");
+            input.value = "";
+
+            const response = await fetch("/api/chat/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: message }),
+            });
+
+            const data = await response.json();
+            appendMessage("Agent: " + (data.reply || data.error), "agent-msg");
+        }
+
+        sendBtn.addEventListener("click", sendMessage);
+        input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") sendMessage();
+        });
+
+        startOver.addEventListener("click", (e) => {
+            e.preventDefault();
+            chatLog.innerHTML = "";
+        });
+    </script>
+</body>
+</html>
